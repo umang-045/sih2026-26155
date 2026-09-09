@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Compliance Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-8">
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="border-b border-slate-700 pb-4">
+            <h1 class="text-3xl font-bold text-blue-400">AI-Augmented Multi-Vendor Compliance Auditor</h1>
+            <p class="text-slate-400 text-sm mt-1">Audit network configurations against CIS, STIG, and NIST benchmarks.</p>
+        </header>
+
+        <!-- Audit Upload Card -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-slate-200">1. Upload Configuration File</h2>
+            <form id="auditForm" class="flex items-center gap-4">
+                <input type="file" id="configFile" required class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer border border-slate-700 rounded-lg p-1 bg-slate-900">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2.5 rounded-lg transition-all">Audit File</button>
+            </form>
+        </div>
+
+        <!-- Audit Results Section -->
+        <div id="resultsCard" class="hidden bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                <div>
+                    <h2 id="resHostname" class="text-2xl font-bold text-white">Device Hostname</h2>
+                    <p id="resMeta" class="text-sm text-slate-400 mt-1"></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="resStatus" class="px-4 py-1.5 rounded-full text-sm font-bold"></span>
+                    <button id="downloadPdfBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">Download PDF Report</button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold text-slate-300 mb-3">Detected Violations</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Rule ID</th>
+                                <th class="p-3">Severity</th>
+                                <th class="p-3">Finding Title</th>
+                                <th class="p-3">Remediation CLI Command</th>
+                            </tr>
+                        </thead>
+                        <tbody id="violationsTable" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Training Loop Card -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-semibold mb-2 text-slate-200">2. Dynamic AI Training Loop (Human-in-the-Loop)</h2>
+            <p class="text-sm text-slate-400 mb-4">Map unrecognized CLI commands to compliance keys without redeploying code.</p>
+            <form id="trainForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <select id="trainVendor" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
+                    <option value="cisco">Cisco</option>
+                    <option value="juniper">Juniper</option>
+                    <option value="paloalto">Palo Alto</option>
+                </select>
+                <input type="text" id="trainKey" placeholder="Feature Key (e.g. telnet_enabled)" required class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
+                <input type="text" id="trainPattern" placeholder="CLI Syntax Pattern" required class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-medium px-4 py-2.5 rounded-lg transition-all">Save Mapping</button>
+            </form>
+            <p id="trainStatus" class="text-sm mt-3 font-medium text-emerald-400 hidden"></p>
+        </div>
+
+    </div>
+
+    <script>
+        let currentFile = null;
+
+        document.getElementById('auditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('configFile');
+            if (!fileInput.files[0]) return;
+            currentFile = fileInput.files[0];
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            const res = await fetch('/audit', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            document.getElementById('resultsCard').classList.remove('hidden');
+            document.getElementById('resHostname').innerText = data.hostname;
+            document.getElementById('resMeta').innerText = `Filename: ${data.filename} | Vendor: ${data.extracted_metadata.vendor.toUpperCase()} | Violations: ${data.violation_count}`;
+            
+            const statusBadge = document.getElementById('resStatus');
+            statusBadge.innerText = data.status;
+            statusBadge.className = data.status === 'COMPLIANT' 
+                ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-900/60 text-emerald-400 border border-emerald-500' 
+                : 'px-4 py-1.5 rounded-full text-sm font-bold bg-rose-900/60 text-rose-400 border border-rose-500';
+
+            const table = document.getElementById('violationsTable');
+            table.innerHTML = '';
+            
+            if (data.violations.length === 0) {
+                table.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-emerald-400">No violations found! Device is fully compliant.</td></tr>`;
+            } else {
+                data.violations.forEach(v => {
+                    table.innerHTML += `
+                        <tr class="hover:bg-slate-700/50">
+                            <td class="p-3 font-mono text-xs text-blue-400">${v.rule_id}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-semibold ${v.severity === 'High' ? 'bg-rose-900 text-rose-300' : 'bg-amber-900 text-amber-300'}">${v.severity}</span></td>
+                            <td class="p-3 font-medium text-slate-200">${v.title}</td>
+                            <td class="p-3 font-mono text-xs text-slate-400 bg-slate-900/50 rounded">${v.remediation}</td>
+                        </tr>`;
+                });
+            }
+        });
+
+        document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+            if (!currentFile) return;
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            const res = await fetch('/audit/pdf', { method: 'POST', body: formData });
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentFile.name}_report.pdf`;
+            a.click();
+        });
+
+        document.getElementById('trainForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                vendor: document.getElementById('trainVendor').value,
+                feature_key: document.getElementById('trainKey').value,
+                cli_pattern: document.getElementById('trainPattern').value
+            };
+
+            const res = await fetch('/train', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            const trainStatus = document.getElementById('trainStatus');
+            trainStatus.innerText = data.message;
+            trainStatus.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

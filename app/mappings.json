@@ -1,0 +1,24 @@
+{
+  "cisco": {
+    "aaa_enabled": [
+      "aaa new-model"
+    ],
+    "http_disabled": [
+      "no ip http server"
+    ]
+  },
+  "juniper": {
+    "has_enable_secret": [
+      "root-authentication",
+      "plain-text-password"
+    ],
+    "telnet_enabled": [
+      "system services telnet"
+    ]
+  },
+  "paloalto": {
+    "telnet_enabled": [
+      "enable-telnet yes"
+    ]
+  }
+}

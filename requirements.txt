@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pybatfish
+ciscoconfparse2
+requests
+python-multipart
+reportlab
