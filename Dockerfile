@@ -14,5 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Start OPA in background and run FastAPI
-CMD opa run --server --addr localhost:8181 ./app/rules/ & \
+CMD opa run --server --addr localhost:8181 /app/rules/ & \
     uvicorn app.main:app --host 0.0.0.0 --port 10000
