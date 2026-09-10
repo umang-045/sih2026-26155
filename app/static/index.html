@@ -1,155 +1,585 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Compliance Auditor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8fafc">
+  <title>Network Compliance Auditor</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+<style>
+    html { scroll-behavior: smooth; }
+    body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; background: #f8fafc; color: #0f172a; }
+    h1, h2, h3, button { font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif; }
+    ::selection { background: #0f172a; color: #ffffff; }
+    
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    }
+
+    .focus-ring:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+    
+    .drop-active { 
+      border-color: #0f172a !important; 
+      background: rgba(15, 23, 42, 0.04) !important; 
+      transform: scale(1.005); 
+    }
+    
+    .table-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; background: #f8fafc; color: #0f172a; }
+    h1, h2, h3, button { font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif; }
+    ::selection { background: #0f172a; color: #ffffff; }
+    
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.16) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(ellipse at center, black 60%, transparent 95%);
+    }
+
+    .focus-ring:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+    
+    .drop-active { 
+      border-color: #0f172a !important; 
+      background: rgba(15, 23, 42, 0.04) !important; 
+      transform: scale(1.005); 
+    }
+    
+    .table-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-8">
-    <div class="max-w-5xl mx-auto space-y-8">
-        
-        <!-- Header -->
-        <header class="border-b border-slate-700 pb-4">
-            <h1 class="text-3xl font-bold text-blue-400">AI-Augmented Multi-Vendor Compliance Auditor</h1>
-            <p class="text-slate-400 text-sm mt-1">Audit network configurations against CIS, STIG, and NIST benchmarks.</p>
-        </header>
 
-        <!-- Audit Upload Card -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-slate-200">1. Upload Configuration File</h2>
-            <form id="auditForm" class="flex items-center gap-4">
-                <input type="file" id="configFile" required class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer border border-slate-700 rounded-lg p-1 bg-slate-900">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2.5 rounded-lg transition-all">Audit File</button>
-            </form>
+<body class="min-h-screen text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+  <!-- Dynamic Atmospheric Background Elements -->
+  <div class="fixed inset-0 grid-bg pointer-events-none -z-10"></div>
+
+  <div id="toastContainer" class="fixed right-4 top-4 z-[100] flex w-[min(92vw,380px)] flex-col gap-2"></div>
+
+  <div class="mx-auto flex min-h-screen max-w-[1440px]">
+    <main class="mx-auto min-w-0 w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-12">
+      
+      <!-- Header -->
+      <header id="header" class="mb-8 opacity-0">
+        <p class="mb-1 font-mono text-[10px] uppercase tracking-[.25em] text-slate-500 font-semibold">Security & Configuration Posture</p>
+        <h1 class="text-3xl font-extrabold tracking-[-0.03em] text-slate-900 sm:text-4xl">AI Network Compliance Auditor</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          Automated deep-inspection of device configurations against CIS Benchmarks, DISA STIGs, and NIST frameworks.
+        </p>
+      </header>
+
+      <!-- Audit Metadata Bar -->
+      <section class="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-xs backdrop-blur shadow-sm">
+        <span class="inline-flex items-center gap-2 font-medium text-slate-700">
+          <i data-lucide="cpu" class="h-3.5 w-3.5 text-slate-900"></i>
+          Rule Engine Active
+        </span>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-600">CIS · STIG · NIST SP 800-53</span>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-600">TXT · CFG · LOG</span>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-600">Max 10 MB</span>
+        <span class="ml-auto hidden font-mono text-[10px] uppercase tracking-wider text-slate-400 sm:inline">SECURE CONFIG PIPELINE</span>
+      </section>
+
+      <!-- File Upload Section -->
+      <section id="audit" class="gsap-card rounded-2xl border border-slate-300 bg-white p-6 shadow-card sm:p-8">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-900">
+                <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+              </span>
+              <h2 class="text-lg font-bold tracking-tight text-slate-900">Run Configuration Audit</h2>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Upload network raw configuration files for automated vulnerability analysis.</p>
+          </div>
+          <span class="w-fit rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[10px] text-slate-500">POST /api/v1/audit</span>
         </div>
 
-        <!-- Audit Results Section -->
-        <div id="resultsCard" class="hidden bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
-                <div>
-                    <h2 id="resHostname" class="text-2xl font-bold text-white">Device Hostname</h2>
-                    <p id="resMeta" class="text-sm text-slate-400 mt-1"></p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span id="resStatus" class="px-4 py-1.5 rounded-full text-sm font-bold"></span>
-                    <button id="downloadPdfBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">Download PDF Report</button>
-                </div>
+        <form id="auditForm">
+          <div id="dropzone" tabindex="0" role="button" aria-label="Upload configuration file"
+               class="group relative rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition-all duration-300 hover:border-slate-900 hover:bg-slate-100/70 focus-ring sm:p-12">
+            <input type="file" id="configFile" accept=".txt,.cfg,.log,text/plain" class="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+
+            <div id="dropzoneContent" class="pointer-events-none flex flex-col items-center">
+              <div class="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm transition duration-300 group-hover:scale-110 group-hover:bg-slate-900 group-hover:text-white">
+                <i data-lucide="file-up" class="h-6 w-6"></i>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">Drop your device configuration here</p>
+              <p class="mt-1 text-xs text-slate-500">or <span class="text-slate-900 font-semibold underline underline-offset-2">browse files from computer</span></p>
+              
+              <div class="mt-6 flex flex-wrap justify-center gap-2">
+                <span class="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-[10px] text-slate-500">.CFG</span>
+                <span class="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-[10px] text-slate-500">.TXT</span>
+                <span class="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-[10px] text-slate-500">.LOG</span>
+                <span class="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-[10px] text-slate-500">UP TO 10MB</span>
+              </div>
             </div>
 
-            <div>
-                <h3 class="text-lg font-semibold text-slate-300 mb-3">Detected Violations</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-3">Rule ID</th>
-                                <th class="p-3">Severity</th>
-                                <th class="p-3">Finding Title</th>
-                                <th class="p-3">Remediation CLI Command</th>
-                            </tr>
-                        </thead>
-                        <tbody id="violationsTable" class="divide-y divide-slate-700"></tbody>
-                    </table>
+            <div id="selectedFileState" class="hidden mx-auto max-w-xl items-center justify-between rounded-xl border border-slate-300 bg-white p-4 text-left shadow-sm">
+              <div class="flex min-w-0 items-center gap-3">
+                <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-100 border border-slate-200 text-slate-900">
+                  <i data-lucide="file-code" class="h-5 w-5"></i>
                 </div>
+                <div class="min-w-0">
+                  <p id="fileNameDisplay" class="truncate text-sm font-semibold text-slate-900"></p>
+                  <p id="fileSizeDisplay" class="mt-0.5 font-mono text-[10px] text-slate-500"></p>
+                </div>
+              </div>
+              <button type="button" id="removeFileBtn" aria-label="Remove selected file" class="focus-ring ml-3 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900">
+                <i data-lucide="x" class="h-4 w-4"></i>
+              </button>
             </div>
+          </div>
+
+          <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-xs text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="lock" class="h-3.5 w-3.5 text-slate-400"></i>
+              End-to-end client analysis. Files are evaluated in memory.
+            </p>
+            <button type="submit" id="auditBtn" class="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+              <span id="auditBtnText">Run Compliance Audit</span>
+              <i id="auditBtnIcon" data-lucide="arrow-right" class="h-4 w-4"></i>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Audit Results Section -->
+      <section id="resultsCard" class="mt-8 hidden opacity-0">
+        <div class="rounded-2xl border border-slate-300 bg-white shadow-card overflow-hidden">
+          <div class="border-b border-slate-200 p-6 sm:p-8 bg-slate-50/70">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div class="min-w-0">
+                <div class="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.2em] text-slate-500">
+                  <i data-lucide="scan-search" class="h-3.5 w-3.5"></i> Audit Summary
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm">
+                    <i data-lucide="server" class="h-5 w-5"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <h2 id="resHostname" class="truncate text-2xl font-extrabold tracking-tight text-slate-900">Unknown Host</h2>
+                    <p id="resMeta" class="mt-1 truncate font-mono text-[11px] text-slate-500"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span id="resStatus" class="rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider"></span>
+                <button id="downloadPdfBtn" type="button" class="focus-ring inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 active:scale-[.98] shadow-sm">
+                  <i data-lucide="download" class="h-4 w-4"></i> Export PDF Report
+                </button>
+              </div>
+            </div>
+
+            <!-- Metric Cards -->
+            <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 border-t border-slate-200 pt-6">
+              <div class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Violations Found</span>
+                <strong id="statIssues" class="mt-1 block text-xl font-bold text-slate-900">—</strong>
+              </div>
+              <div class="rounded-xl border border-rose-200 bg-rose-50/60 p-3.5">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-rose-700">High Severity</span>
+                <strong id="statHigh" class="mt-1 block text-xl font-bold text-rose-700">—</strong>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Detected Vendor</span>
+                <strong id="statVendor" class="mt-1 block text-xl font-bold text-slate-800">—</strong>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</span>
+                <strong id="statStatus" class="mt-1 block text-xl font-bold text-slate-800">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div id="findings" class="p-6 sm:p-8">
+            <div class="mb-5 flex items-center justify-between gap-3">
+              <div>
+                <h3 class="flex items-center gap-2 text-base font-bold text-slate-900">
+                  <i data-lucide="shield-alert" class="h-5 w-5 text-amber-500"></i>
+                  Audit Findings & Violations
+                </h3>
+                <p class="mt-1 text-xs text-slate-500">Detailed breakdown of non-compliant configurations with remediation advice.</p>
+              </div>
+              <span id="violationBadgeCount" class="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-mono text-xs font-medium text-slate-600"></span>
+            </div>
+
+            <div class="table-scroll overflow-x-auto rounded-xl border border-slate-200">
+              <table class="w-full min-w-[840px] text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="p-4">Rule ID</th>
+                    <th class="p-4">Severity</th>
+                    <th class="p-4">Finding Description</th>
+                    <th class="p-4">Remediation Script / Command</th>
+                  </tr>
+                </thead>
+                <tbody id="violationsTable" class="divide-y divide-slate-200 text-xs"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Training Section -->
+      <section id="training" class="gsap-card mt-8 rounded-2xl border border-slate-300 bg-white p-6 shadow-card sm:p-8">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-900">
+                <i data-lucide="brain-circuit" class="h-4 w-4"></i>
+              </span>
+              <h2 class="text-lg font-bold tracking-tight text-slate-900">Dynamic AI Training Loop</h2>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Map unrecognized CLI patterns to internal security rule engines in real-time.</p>
+          </div>
+          <span class="w-fit rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[10px] text-slate-500">POST /api/v1/train</span>
         </div>
 
-        <!-- Dynamic Training Loop Card -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
-            <h2 class="text-xl font-semibold mb-2 text-slate-200">2. Dynamic AI Training Loop (Human-in-the-Loop)</h2>
-            <p class="text-sm text-slate-400 mb-4">Map unrecognized CLI commands to compliance keys without redeploying code.</p>
-            <form id="trainForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <select id="trainVendor" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
-                    <option value="cisco">Cisco</option>
-                    <option value="juniper">Juniper</option>
-                    <option value="paloalto">Palo Alto</option>
-                </select>
-                <input type="text" id="trainKey" placeholder="Feature Key (e.g. telnet_enabled)" required class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
-                <input type="text" id="trainPattern" placeholder="CLI Syntax Pattern" required class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5">
-                <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-medium px-4 py-2.5 rounded-lg transition-all">Save Mapping</button>
-            </form>
-            <p id="trainStatus" class="text-sm mt-3 font-medium text-emerald-400 hidden"></p>
-        </div>
+        <form id="trainForm" class="grid gap-3.5 md:grid-cols-[1fr_1.15fr_1.4fr_auto]">
+          <label class="relative block">
+            <span class="sr-only">Vendor</span>
+            <select id="trainVendor" class="focus-ring w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs text-slate-800 transition hover:border-slate-400">
+              <option value="cisco">Cisco IOS / XE</option>
+              <option value="juniper">Junos OS</option>
+              <option value="paloalto">Palo Alto PAN-OS</option>
+            </select>
+            <i data-lucide="chevron-down" class="pointer-events-none absolute right-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+          </label>
 
-    </div>
+          <label class="block">
+            <span class="sr-only">Compliance Key</span>
+            <input type="text" id="trainKey" required autocomplete="off" placeholder="Key e.g. telnet_enabled"
+              class="focus-ring w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3 font-mono text-xs text-slate-800 placeholder:text-slate-400 transition hover:border-slate-400">
+          </label>
 
-    <script>
-        let currentFile = null;
+          <label class="block">
+            <span class="sr-only">CLI Syntax Pattern</span>
+            <input type="text" id="trainPattern" required autocomplete="off" placeholder="CLI Syntax Pattern"
+              class="focus-ring w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3 font-mono text-xs text-slate-800 placeholder:text-slate-400 transition hover:border-slate-400">
+          </label>
 
-        document.getElementById('auditForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const fileInput = document.getElementById('configFile');
-            if (!fileInput.files[0]) return;
-            currentFile = fileInput.files[0];
+          <button type="submit" id="trainBtn" class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-900 px-5 py-3 text-xs font-semibold text-white transition hover:bg-slate-800 active:scale-[.98]">
+            <span>Save Mapping</span>
+            <i data-lucide="save" class="h-3.5 w-3.5"></i>
+          </button>
+        </form>
+      </section>
 
-            const formData = new FormData();
-            formData.append('file', currentFile);
+      <footer class="mt-12 border-t border-slate-300 py-6 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+        Network Compliance Auditor · Enterprise Config Engine
+      </footer>
+    </main>
+  </div>
 
-            const res = await fetch('/audit', { method: 'POST', body: formData });
-            const data = await res.json();
-            
-            document.getElementById('resultsCard').classList.remove('hidden');
-            document.getElementById('resHostname').innerText = data.hostname;
-            document.getElementById('resMeta').innerText = `Filename: ${data.filename} | Vendor: ${data.extracted_metadata.vendor.toUpperCase()} | Violations: ${data.violation_count}`;
-            
-            const statusBadge = document.getElementById('resStatus');
-            statusBadge.innerText = data.status;
-            statusBadge.className = data.status === 'COMPLIANT' 
-                ? 'px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-900/60 text-emerald-400 border border-emerald-500' 
-                : 'px-4 py-1.5 rounded-full text-sm font-bold bg-rose-900/60 text-rose-400 border border-rose-500';
+<script>
+  lucide.createIcons();
 
-            const table = document.getElementById('violationsTable');
-            table.innerHTML = '';
-            
-            if (data.violations.length === 0) {
-                table.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-emerald-400">No violations found! Device is fully compliant.</td></tr>`;
-            } else {
-                data.violations.forEach(v => {
-                    table.innerHTML += `
-                        <tr class="hover:bg-slate-700/50">
-                            <td class="p-3 font-mono text-xs text-blue-400">${v.rule_id}</td>
-                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-semibold ${v.severity === 'High' ? 'bg-rose-900 text-rose-300' : 'bg-amber-900 text-amber-300'}">${v.severity}</span></td>
-                            <td class="p-3 font-medium text-slate-200">${v.title}</td>
-                            <td class="p-3 font-mono text-xs text-slate-400 bg-slate-900/50 rounded">${v.remediation}</td>
-                        </tr>`;
-                });
-            }
-        });
+  const $ = (id) => document.getElementById(id);
+  let currentFile = null;
 
-        document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
-            if (!currentFile) return;
-            const formData = new FormData();
-            formData.append('file', currentFile);
+  function animateEntrance() {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      gsap.set("#header, .gsap-card", { opacity: 1, y: 0 });
+      return;
+    }
+    gsap.timeline({ defaults: { ease: "power3.out" } })
+      .to("#header", { opacity: 1, y: 0, duration: .65, startAt: { y: -16 } })
+      .to(".gsap-card", { opacity: 1, y: 0, duration: .7, stagger: .1, startAt: { y: 18 } }, "-=.35");
+  }
+  window.addEventListener("DOMContentLoaded", animateEntrance);
 
-            const res = await fetch('/audit/pdf', { method: 'POST', body: formData });
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${currentFile.name}_report.pdf`;
-            a.click();
-        });
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[ch]));
+  }
 
-        document.getElementById('trainForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                vendor: document.getElementById('trainVendor').value,
-                feature_key: document.getElementById('trainKey').value,
-                cli_pattern: document.getElementById('trainPattern').value
-            };
+  function showToast(message, type = "info") {
+    const toast = document.createElement("div");
+    const icon = type === "success" ? "check-circle-2" : type === "error" ? "circle-alert" : "info";
+    const borderClass = type === "success" ? "border-emerald-300 text-emerald-800 bg-emerald-50" : type === "error" ? "border-rose-300 text-rose-800 bg-rose-50" : "border-slate-300 text-slate-800 bg-white";
+    
+    toast.className = `flex items-start gap-3 rounded-xl border ${borderClass} px-4 py-3.5 text-xs shadow-xl backdrop-blur-md`;
+    toast.innerHTML = `<i data-lucide="${icon}" class="mt-0.5 h-4 w-4 shrink-0"></i><span></span>`;
+    toast.querySelector("span").textContent = message;
+    $("toastContainer").appendChild(toast);
+    lucide.createIcons();
 
-            const res = await fetch('/train', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
-            const trainStatus = document.getElementById('trainStatus');
-            trainStatus.innerText = data.message;
-            trainStatus.classList.remove('hidden');
-        });
-    </script>
+    gsap.fromTo(toast, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: .25 });
+    setTimeout(() => gsap.to(toast, {
+      opacity: 0, y: -8, duration: .2,
+      onComplete: () => toast.remove()
+    }), 3800);
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return "0 Bytes";
+    const units = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(1))} ${units[i]}`;
+  }
+
+  function updateFileState(file) {
+    if (!file) {
+      currentFile = null;
+      $("fileNameDisplay").textContent = "";
+      $("fileSizeDisplay").textContent = "";
+      $("configFile").value = "";
+      $("dropzoneContent").classList.remove("hidden");
+      $("selectedFileState").classList.add("hidden");
+      $("selectedFileState").classList.remove("flex");
+      return;
+    }
+
+    const max = 10 * 1024 * 1024;
+    const allowed = /\.(txt|cfg|log)$/i.test(file.name);
+    if (!allowed) {
+      showToast("Please choose a .TXT, .CFG, or .LOG file.", "error");
+      return;
+    }
+    if (file.size > max) {
+      showToast("File size exceeds 10 MB limit.", "error");
+      return;
+    }
+
+    currentFile = file;
+    $("fileNameDisplay").textContent = file.name;
+    $("fileSizeDisplay").textContent = `${formatBytes(file.size)} · Ready to audit`;
+    $("dropzoneContent").classList.add("hidden");
+    $("selectedFileState").classList.remove("hidden");
+    $("selectedFileState").classList.add("flex");
+  }
+
+  const dropzone = $("dropzone");
+  const fileInput = $("configFile");
+
+  fileInput.addEventListener("change", e => {
+    if (e.target.files?.[0]) {
+      updateFileState(e.target.files[0]);
+    }
+  });
+
+  ["dragenter", "dragover"].forEach(evt => dropzone.addEventListener(evt, e => {
+    e.preventDefault();
+    dropzone.classList.add("drop-active");
+  }));
+
+  ["dragleave", "drop"].forEach(evt => dropzone.addEventListener(evt, e => {
+    e.preventDefault();
+    dropzone.classList.remove("drop-active");
+  }));
+
+  dropzone.addEventListener("drop", e => {
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      try { fileInput.files = e.dataTransfer.files; } catch (_) {}
+      updateFileState(file);
+    }
+  });
+
+  dropzone.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  $("removeFileBtn").addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateFileState(null);
+  });
+
+  $("auditForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const file = currentFile || fileInput.files?.[0];
+    if (!file) {
+      showToast("Select a configuration file first.", "error");
+      return;
+    }
+
+    const btn = $("auditBtn");
+    btn.disabled = true;
+    $("auditBtnText").textContent = "Analyzing Configuration…";
+    $("auditBtnIcon").setAttribute("data-lucide", "loader-circle");
+    $("auditBtnIcon").classList.add("animate-spin");
+    lucide.createIcons();
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/audit", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Audit processing failed.");
+      const data = await res.json();
+
+      renderResults(data);
+      showToast("Audit completed successfully.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Unable to process configuration audit.", "error");
+    } finally {
+      btn.disabled = false;
+      $("auditBtnText").textContent = "Run Compliance Audit";
+      $("auditBtnIcon").setAttribute("data-lucide", "arrow-right");
+      $("auditBtnIcon").classList.remove("animate-spin");
+      lucide.createIcons();
+    }
+  });
+
+  function renderResults(data) {
+    const violations = Array.isArray(data.violations) ? data.violations : [];
+    const high = violations.filter(v => String(v.severity).toLowerCase() === "high").length;
+    const vendor = data.extracted_metadata?.vendor || "N/A";
+    const status = data.status || "UNKNOWN";
+
+    $("resHostname").textContent = data.hostname || "Unknown Host";
+    $("resMeta").textContent = `FILE: ${data.filename || "N/A"}  ·  VENDOR: ${String(vendor).toUpperCase()}`;
+    $("violationBadgeCount").textContent = `${violations.length} ${violations.length === 1 ? "issue" : "issues"}`;
+    $("statIssues").textContent = violations.length;
+    $("statHigh").textContent = high;
+    $("statVendor").textContent = String(vendor).toUpperCase();
+    $("statStatus").textContent = status;
+
+    const badge = $("resStatus");
+    badge.textContent = status;
+    badge.className = status === "COMPLIANT"
+      ? "rounded-full border border-emerald-300 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700"
+      : "rounded-full border border-rose-300 bg-rose-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-rose-700";
+
+    const table = $("violationsTable");
+    table.innerHTML = "";
+
+    if (!violations.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="4" class="p-12 text-center">
+            <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600">
+              <i data-lucide="check-circle" class="h-6 w-6"></i>
+            </div>
+            <p class="mt-4 text-sm font-bold text-slate-900">Configuration is fully compliant</p>
+            <p class="mt-1 text-xs text-slate-500">No rule violations were found across standard policy benchmarks.</p>
+          </td>
+        </tr>`;
+      confetti({ particleCount: 70, spread: 65, origin: { y: .7 }, colors: ["#0f172a", "#10b981", "#64748b"] });
+    } else {
+      violations.forEach(v => {
+        const sev = String(v.severity || "Unknown");
+        const isHigh = sev.toLowerCase() === "high";
+        const isMedium = sev.toLowerCase() === "medium";
+        const sevClass = isHigh
+          ? "border-rose-200 bg-rose-50 text-rose-700"
+          : isMedium
+            ? "border-amber-200 bg-amber-50 text-amber-700"
+            : "border-slate-200 bg-slate-100 text-slate-700";
+
+        const row = document.createElement("tr");
+        row.className = "violation-row opacity-0 transition hover:bg-slate-50";
+        row.innerHTML = `
+          <td class="p-4 align-top"><span class="font-mono font-semibold text-slate-900">${escapeHtml(v.rule_id)}</span></td>
+          <td class="p-4 align-top"><span class="inline-flex rounded-md border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${sevClass}">${escapeHtml(sev)}</span></td>
+          <td class="p-4 align-top"><div class="max-w-md text-slate-700 leading-relaxed">${escapeHtml(v.title)}</div></td>
+          <td class="p-4 align-top"><code class="inline-block max-w-xl rounded-lg border border-slate-200 bg-slate-900 px-3 py-2 font-mono text-[11px] leading-5 text-slate-100">${escapeHtml(v.remediation)}</code></td>`;
+        table.appendChild(row);
+      });
+    }
+
+    lucide.createIcons();
+
+    const card = $("resultsCard");
+    card.classList.remove("hidden");
+    gsap.to(card, { opacity: 1, y: 0, duration: .55, startAt: { y: 18 }, ease: "power3.out" });
+    gsap.to(".violation-row", { opacity: 1, x: 0, stagger: .04, duration: .3, startAt: { x: -8 } });
+
+    setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }
+
+  $("downloadPdfBtn").addEventListener("click", async () => {
+    const file = currentFile || fileInput.files?.[0];
+    if (!file) {
+      showToast("Original configuration file is missing.", "error");
+      return;
+    }
+
+    try {
+      showToast("Generating PDF report…", "info");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/audit/pdf", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("PDF download failed.");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${file.name}_audit_report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("PDF report downloaded.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to generate PDF export.", "error");
+    }
+  });
+
+  $("trainForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const btn = $("trainBtn");
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-circle" class="h-3.5 w-3.5 animate-spin"></i><span>Saving…</span>`;
+    lucide.createIcons();
+
+    const payload = {
+      vendor: $("trainVendor").value,
+      feature_key: $("trainKey").value.trim(),
+      cli_pattern: $("trainPattern").value.trim()
+    };
+
+    try {
+      const res = await fetch("/train", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Mapping save failed.");
+
+      $("trainKey").value = "";
+      $("trainPattern").value = "";
+      showToast(data.message || "CLI mapping saved successfully.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to save CLI mapping.", "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+      lucide.createIcons();
+    }
+  });
+</script>
 </body>
 </html>
